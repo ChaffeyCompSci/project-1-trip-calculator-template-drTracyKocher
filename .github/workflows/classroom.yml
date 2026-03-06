@@ -1,0 +1,40 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Program compiles
+      id: program-compiles
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Program compiles
+        setup-command: ''
+        command: g++ trip.cpp
+        timeout: 10
+        max-score: 5
+    - name: Program Runs
+      id: program-runs
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Program Runs
+        setup-command: ''
+        command: g++ trip.cpp -o trip ./trip
+        timeout: 10
+        max-score: 5
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        PROGRAM-COMPILES_RESULTS: "${{steps.program-compiles.outputs.result}}"
+        PROGRAM-RUNS_RESULTS: "${{steps.program-runs.outputs.result}}"
+      with:
+        runners: program-compiles,program-runs
